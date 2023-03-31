@@ -42,6 +42,16 @@ SOFTWARE.
 #define WIFIINIT_OPTION_USECUSTOMALLOC 0x4000
 #define WIFIINIT_OPTION_HEAPMASK       0xF000
 
+#ifndef WIRELESS_DEFINES
+enum WIFI_PACKET_MODE {
+  PACKET_MODE_WIFI,
+  PACKET_MODE_NIFI,
+};
+extern enum WIFI_PACKET_MODE wirelessMode;
+extern void Wifi_SetRawPacketMode(enum WIFI_PACKET_MODE mode);
+#define WIRELESS_DEFINES
+#endif
+
 #ifdef WIFI_USE_TCP_SGIP
 
 #ifdef __cplusplus
