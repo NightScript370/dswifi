@@ -234,21 +234,12 @@ void ethhdr_print(char f, void * d) {
 }
 
 
-
-
-Wifi_MainStruct Wifi_Data_Struct;
+Wifi_MainStruct *Wifi_Data_Struct = NULL;
 
 volatile Wifi_MainStruct * WifiData = 0;
 
 WifiPacketHandler packethandler = 0;
 WifiSyncHandler synchandler = 0;
-
-void erasemem(void * mem, int length) {
-	int i;
-	char * m = (char *)mem;
-	for(i=0;i<length;i++)
-		m[i]=0;
-}
 
 void Wifi_CopyMacAddr(volatile void * dest, volatile void * src) {
 	((u16 *)dest)[0]=((u16 *)src)[0];
@@ -587,8 +578,8 @@ void sgIP_DNS_Record_Localhost()
 {
     sgIP_DNS_Record *rec;
     const unsigned char * resdata_c = (unsigned char *)&(wifi_hw->ipaddr);
-    rec = sgIP_DNS_GetUnusedRecord();
-    rec->flags=SGIP_DNS_FLAG_ACTIVE | SGIP_DNS_FLAG_BUSY;
+    rec = sgIP_DNS_AllocUnusedRecord();
+    rec->flags=SGIP_DNS_FLAG_ACTIVE | SGIP_DNS_FLAG_BUSY | SGIP_DNS_FLAG_PERMANENT;
     
     rec->addrlen    = 4;
     rec->numalias   = 1;
@@ -600,9 +591,8 @@ void sgIP_DNS_Record_Localhost()
     rec->addrdata[2] = resdata_c[2];
     rec->addrdata[3] = resdata_c[3];
     rec->addrclass = AF_INET;
-    rec->TTL = 0;
 
-    rec->flags=SGIP_DNS_FLAG_ACTIVE | SGIP_DNS_FLAG_BUSY|SGIP_DNS_FLAG_RESOLVED;
+    rec->flags=SGIP_DNS_FLAG_ACTIVE | SGIP_DNS_FLAG_BUSY | SGIP_DNS_FLAG_RESOLVED | SGIP_DNS_FLAG_PERMANENT;
 }
 
 int Wifi_AssocStatus() {
@@ -885,9 +875,15 @@ void Wifi_Timer(int num_ms) {
 #endif
 
 unsigned long Wifi_Init(int initflags) {
-	erasemem(&Wifi_Data_Struct,sizeof(Wifi_Data_Struct));
+	if (Wifi_Data_Struct == NULL) {
+		Wifi_Data_Struct = malloc(sizeof(Wifi_MainStruct));
+		if (Wifi_Data_Struct == NULL) {
+			return 0;
+		}
+	}
+	memset(Wifi_Data_Struct,0,sizeof(Wifi_MainStruct));
     DC_FlushAll();
-	WifiData = (Wifi_MainStruct *) memUncached(&Wifi_Data_Struct); // should prevent the cache from eating us alive.
+	WifiData = (Wifi_MainStruct *) memUncached(Wifi_Data_Struct); // should prevent the cache from eating us alive.
 
 #ifdef WIFI_USE_TCP_SGIP
     switch(initflags & WIFIINIT_OPTION_HEAPMASK) {
@@ -911,7 +907,7 @@ unsigned long Wifi_Init(int initflags) {
 #endif
     
 	WifiData->flags9 = WFLAG_ARM9_ACTIVE | (initflags & WFLAG_ARM9_INITFLAGMASK) ;
-	return (u32) &Wifi_Data_Struct;
+	return (u32) Wifi_Data_Struct;
 }
 
 int Wifi_CheckInit() {

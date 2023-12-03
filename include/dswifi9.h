@@ -7,6 +7,10 @@
 #ifndef DSWIFI9_H
 #define DSWIFI9_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include "dswifi_version.h"
 
 // well, some flags and stuff are just stuffed in here and not documented very well yet... Most of the important stuff is documented though.
@@ -330,8 +334,7 @@ extern void Wifi_SetSyncHandler(WifiSyncHandler sh);
 extern bool Wifi_InitDefault(bool useFirmwareSettings);
 
 #ifdef __cplusplus
-};
+}
 #endif
-
 
 #endif
