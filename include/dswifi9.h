@@ -167,10 +167,6 @@ typedef void (*WifiPacketHandler)(int, int);
 typedef void (*WifiSyncHandler)();
 
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #ifndef WIRELESS_DEFINES
 enum WIFI_PACKET_MODE {
   PACKET_MODE_WIFI,
